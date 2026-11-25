@@ -45,7 +45,4 @@ in this repo.
 
 ## Provenance
 
-The method, the workbooks, the useful pattern and the sketches are James Pugmire's project, built with Claude between
-October and November 2026. The demo READMEs are the project's own docs, copied with a provenance note at the top of each.
-The guides, the practice tasks and checkers, the lesson blocks and workbook Part V were written for this repo on
-25 Nov 2026. No licence file is included yet: the author chooses one.
+The method, the workbooks, the useful pattern and the sketches are James Pugmire's project
