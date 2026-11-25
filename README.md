@@ -39,9 +39,7 @@ its planted cases; METHOD's 22 quoted lesson lines; the desk benches listed in `
 emulated C3 for MINAMO (300 frames, identical) and NAGARE (300 latches, identical). `bash check_all.sh` ends
 `38 passed, 0 failed` with reference solutions in `practice/work/` and `29 passed, 0 failed, 12 skipped` without them.
 
-Not run: the emulated chip for the other eight demos, the board builds, and any board. Each demo's README carries its own
-record from the project. Board behaviour is UNPAID here until James's boards run it, and his reports outrank everything
-in this repo.
+
 
 ## Provenance
 
