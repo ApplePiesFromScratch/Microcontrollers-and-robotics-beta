@@ -1,0 +1,100 @@
+# ACE 4 (ESP32-C3 + ST7789). Lessons are inserted above each anchor by tools/lessons.py.
+@ // ACE 4: a dogfight over a dusk canyon.
+LESSON MAP: ACE 4, a rate law where everyone else uses a position law, and a whole-number 3D rasteriser
+SKILL      : a missile that reads how fast the line of sight TURNS and turns by a multiple of that rate; parts held as a
+             ledger (load past a threshold reconfigures: tear, keep 2/5); flight read from the parts; a 3D rasteriser in
+             whole numbers woven a band at a time; detail landed coarser when the last frame read heavy.
+BENCH      : gcc -O2 -w -DSKETCH='"../demos/ace4/ace4.ino"' -o /tmp/ace ../../tools/desk_panel.c && /tmp/ace 600
+             compare: add -DPURE_PURSUIT (ACE 3's law: chase the bearing) and read the MISSILES line of an emulator run.
+READ FIRST : demos/ace4/README.md; docs/USEFUL_PATTERN.md (the part ledger is clause 4: past the boundary, reconfigure).
+SECTIONS   : 2 the ring | 3 the mouths | 4 the engine (tile prints) | 5 the panel | 6 the face | 7 GLIDE rasteriser
+             8 the air | 9 the eye | 10 airframes from a seed | 11 THE JETS: parts as a ledger | 12 flight | 13 ground war
+             14 pilots | 15 THE MISSILE AND THE SEEKER | 16 growing the picture | 17 hands and the test card | 18 the frame
+@ // ---------------------------------------------------------------- the ring (heading 1:1304)
+The ring: one heading (1 : 1304), composed
+WHAT    : grow_ring composes the heading (1:1304) with itself round the circle; every turn reads this table. root is the
+          digit-pair root: two bits of the radicand a step, no division.
+RELATION: (1 : 1304) turns by an angle whose half has slope 1/1304; its unit is exact before any landing.
+@ // ---------------------------------------------------------------- the mouths (DESK, FIFO
+The mouths: every command, parameter and pixel run is a queued SPI transaction
+WHAT    : the CPU never waits for the wire. DESK, FIFO (emulator) and DMA (board) take the same calls.
+@ // ---------------------------------------------------------------- the engine
+The engine: send only what changed
+WHAT    : tile_print hashes each tile; a tile whose print equals what the panel holds is not sent. forget_glass marks every
+          tile unknown after a scene change.
+RELATION: what the panel holds is a reading the sketch keeps of the glass. It is a second description of one thing, so
+          every scene change must forget it, or the two descriptions disagree (WAKE's pattern).
+@ // ---------------------------------------------------------------- the panel
+The panel: clean slate on a scene change
+WHAT    : drain the queue, say the panel's state again, paint all 320 x 240 black, forget every print.
+@ // ================================================================ the face
+The face: 5 x 7 letters at any whole scale
+@ // ================================================================ GLIDE
+GLIDE: a whole-number 3D rasteriser, woven a band at a time
+WHAT    : each triangle is set up once a frame: screen edges, and planes for 1/z, u/z, v/z and light. Each 16-row band clears
+          its own 16 x 320 depth strip and fills only the triangles binned to it.
+HOLDING : 1/z, u/z, v/z are planes across the screen, so they step by adds along a row. Texture is perspective-true every
+          16th dot (two divisions) and straight between. Light per corner, smooth across. Fog by distance.
+WHY     : a band-sized depth strip is the budget rule: 16 x 320 depths fit in fast RAM; a full-screen depth buffer would not
+          leave room for the pictures.
+TRAP    : mulhi64 exists because a 32 x 32 product needs 64 bits; read where it is used and why a plain int32 product
+          would wrap.
+@ // ================================================================ the air
+The air: lift, drag, gusts, thermals, ridge lift
+HOLDING : places and speeds in 1/16 units (a cell is 256 units; a span about 126). Angles in 1/16 ring steps.
+WHAT    : air_up is a rule of place (thermals over sunlit ground, lift where wind meets a ridge), read by every jet alike.
+@ // ================================================================ the eye
+The eye, and the flyer grown into triangles every frame
+WHAT    : to_eye takes a world place into the eye's frame by the ring's headings. The eye banks with your jet.
+@ // ================================================================ airframes grown from one number each
+Airframes from one seed each
+WHAT    : a seed decides span, sweep, chords, fuselage, fins, tailplanes, canopy and the camouflage. Nothing is a stored model.
+@ // ================================================================ the jets
+THE JETS: parts as a ledger
+LEDGER  : each part holds a size (of 256) and a load (damage carried). A hit adds load. Past its threshold (PTH: nose 300,
+          engine 260, wings 210, tails and fin 150) the part RECONFIGURES: keeps 2/5 of its load, loses a third of its size;
+          the rest of the load leaves as a torn piece that falls and becomes ground.
+WHY     : the useful pattern's clause, run as code: when demand exceeds what the structure can carry, it reconfigures to a
+          simpler one and vents the rest. No hit points: a jet is what its parts still carry.
+READS   : flight reads the parts: lift from each wing's size, so a torn wing rolls the jet; thrust from the engine; pitch
+          from the tailplanes; the fin holds the nose straight.
+BOOKS   : DAMAGE line on the emulator: in, ground, tears, kills, deaths, unbalanced. unbalanced should read 0.
+@ // ================================================================ flight
+Flight: the same lift, drag and stall for every jet, read from its parts
+WHAT    : one jet_step for you and the bandits. Guns: two streams from the wing roots, a round every other frame, heat that
+          locks them out (heat carried as a reading, venting at a rate).
+@ // ================================================================ the ground war
+The ground war: flak guns and fuel tanks in every village
+LEDGER  : a target's hull is 120 (gun) or 60 (tank); each round takes 20, held as its LOAD; at the hull it burns.
+@ // ================================================================ the pilots
+The pilots: chase a lead point, pull out of the ground, break when close
+WHAT    : a bandit hunts in bursts and cruises the canyon between them, so it can be caught. Nobody hunts the fallen.
+@ // ================================================================ the particles
+THE MISSILE: the bearing's rate, not the bearing
+LAW     : each frame the line of sight to the target is read at grain 1024 (lx, ly, lz = d_xyz * 1024 / d). Its turn since
+          last frame is (lx - p->lx, ...). The missile's rate is pushed by PN_N = 4 times that turn times its speed, limited
+          by the fins (MSL_FIN). A line of sight that does not turn means the two paths meet: no correction is needed.
+RELATION: the law reads a rate of a relation (the bearing between two moving things), never where the target is.
+          PURE_PURSUIT (ACE 3) reads the bearing itself and lags behind a crossing target.
+CUT     : the turn is a difference of two frames' readings at grain 1024. A noisier sensor would need the turn taken over
+          several readings (METHOD 8 step 9: an approach rate as a reading over ten readings).
+KNOWN   : this law is proportional navigation, in guidance since the 1950s. What this sketch adds is the law in whole
+          numbers, beside its pursuit control, on a $2 chip.
+SEEKER  : each frame it takes the hottest reading in its 37-degree cone: heat x 2048 / (2048 + d). A jet glows 700 (1500
+          on afterburner); a flare starts at 2400 and cools by a sixteenth a frame, so for about 12 frames a fresh flare
+          outshines the jet behind it. The seeker is a reading, so it can be stolen.
+TRY     : build the emulator image twice, with and without -DPURE_PURSUIT, same FRAMES. Predict the MISSILES line:
+          more hits under the rate law. Run both and log the two lines (practice/p10).
+@ // ================================================================ growing the picture
+Growing the picture: jets, particles, clouds, then the land
+WHAT    : the fuselage as rings along a spindle; camouflage from the seed; billboards for puffs. The far land is laid in
+          2 x 2 blocks, and a frame that read heavy lays the next a grain coarser (lod_of).
+RELATION: detail is read against the last frame's cost: a relation, not a fixed setting. The cut moves with the load.
+@ // ================================================================ the hands
+The hands, the test card, and the pilot that flies when no one does
+WHAT    : B held at power-up shows a still test card (eight bars, a one-dot frame, a centre cross) to set RGB_ORDER and
+          NO_INVERT by eye before anything moves. Nothing touched: the demo pilot flies, so the bench can play.
+@ // ================================================================ the frame
+The frame: grow, weave each band, print, send only what changed
+WHAT    : step_all, then the picture grown, each band woven and its tiles printed; only changed tiles go down the wire.
+BENCH   : FRAMES=n emulator builds print F lines and, at the end, LEDGER, MISSILES, DAMAGE, STACK and HEAP lines.

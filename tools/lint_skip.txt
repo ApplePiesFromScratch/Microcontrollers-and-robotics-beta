@@ -1,0 +1,20 @@
+# files tools/wordlint.py skips, each with its reason
+docs/USEFUL_PATTERN.md                      # James's text, verbatim: it names refused words in order to refuse them
+workbook/sources/numbers-and-why-they-work.md          # verbatim source
+workbook/sources/letters-that-stand-for-numbers.md     # verbatim source
+workbook/sources/shapes-and-why-they-measure-out.md    # verbatim source
+workbook/sources/every-number-is-a-rule-corrected.md   # verbatim source
+workbook/EVERY_NUMBER_IS_A_RULE_CONSOLIDATED.md        # Parts I-IV verbatim; Part V and notes are linted as workbook/part5.md, notes.md
+demos/lace/README.md                        # project doc, verbatim
+demos/tide/README.md                        # project doc, verbatim
+demos/highnoon/README.md                    # project doc, verbatim
+demos/minamo/README.md                      # project doc, verbatim
+demos/nagare/README.md                      # project doc, verbatim
+demos/candle/README.md                      # project doc, verbatim
+demos/tater/README.md                       # project doc, verbatim
+demos/os4/README.md                         # project doc, verbatim
+demos/os4/INSIGHTS.md                       # project doc, verbatim
+demos/irori/README.md                       # project doc, verbatim
+practice/p08_dereify/planted/refused_word.md   # a planted fault: it must hold a refused word
+docs/METHOD.md:88                           # the list of refused words, named in order to be refused
+docs/METHOD.md:520                          # the rule "never claim something is impossible": a denial, read as a claim by a word reader

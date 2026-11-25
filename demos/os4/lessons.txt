@@ -1,0 +1,93 @@
+# RULE OS 4 (ESP32-C3 build). Lessons are inserted above each anchor by tools/lessons.py.
+@ // RULE OS 4 for the ESP32-C3
+LESSON MAP: RULE OS 4, a scheduler made of the useful pattern, with no budgets and no priorities
+SKILL      : a budget is a relation, not a property: each place carries a loaded history L; the place due soonest runs (min);
+             a step pushes its due mark on by weight x (C + L + drag) (+); past THETA a place reconfigures. One kernel on two
+             chips; books every latch (field + every L = G0); a refusal that says so on the bar.
+BENCH      : bench/tools/c3_desk.cpp is the C3 desk twin; bench/tools/uno_desk.cpp the Uno's; bench/tools/vmcheck.cpp checks the
+             C machine against a second implementation (bench/tools/sbs.py runs them side by side).
+READ FIRST : docs/OS_GUIDE.md (OS 2 -> OS 3 -> OS 4 -> IRORI); demos/os4/README.md; demos/os4/INSIGHTS.md (I1-I4, E1-E7).
+SECTIONS   : 2 shapes | 3 KERNEL | 4 mouths | 5 panel | 6 tools | 7 the glass | 8 face | 9 hands | 10 the arena (WHENHEAP)
+             11 files kept twice | 12 readings over one bottom | 13 vm_step | 14 step weights | 15 THE FLUX | 16 hooks
+             17 windows | 18 buttons | 19 apps | 20 the ghost hand | 21 the frame
+@ // ---------------------------------------------------------------- the shapes of things
+Types first, so the IDE's prototypes can name them (CI 63)
+@ // ================================================================ KERNEL
+THE KERNEL: one kernel.h, joined into the Uno and the C3 sketches
+MACHINE : OS 2's: two-byte steps, 32 moves, eight slots per program, a slot a reading (value; rate) over one shared bottom in
+          lowest terms. The same files give the same readings, slot for slot, on both boards.
+WHY ONE : the kernel run on the C3's instruction set in Espressif's emulator equals the desk, latch for latch. Two chips are
+          two witnesses of one kernel only because the kernel is one file (README).
+@ // ---------------------------------------------------------------- the mouths
+The mouths: DESK stream, FIFO for the emulator, FAREY's queue for the board
+@ // ---------------------------------------------------------------- the panel
+The panel
+@ // ---------------------------------------------------------------- small whole-number tools
+Whole-number tools: mouth, mouth64, scatter
+@ // ---------------------------------------------------------------- the glass
+The glass: one byte a dot through a grown palette
+WHAT    : a surface is a byte picture of its own size (the glass, or a window's picture). Colour is landed at the palette.
+@ // ---------------------------------------------------------------- the face
+The face: 5 x 7 at any whole scale
+@ // ---------------------------------------------------------------- the hands
+The hands: stick and buttons, or the ghost
+FOUND   : a click is a relation between two frames, not a state (INSIGHTS E7: a scripted hold ran into the next press).
+@ // ---------------------------------------------------------------- the arena
+The arena: memory that says WHEN, not only NO
+RULE    : ask for n units for a handle: 1 = placed now; 0 = held, with a promise said (the latch at which it will open);
+          -1 = refused (theta). can_clear dry-runs a plan before any block moves.
+RELATION: "out of memory" as a yes/no is a reading at one cut. The arena reads the relation (what must move, by when).
+FOUND   : OS 3 refused a window in silence for 150 frames; OS 4 writes the refusal on the bar (README). A refusal nobody
+          can read is a silent refusal.
+@ // ---------------------------------------------------------------- files: kept twice
+Files kept twice, each with a mark and a sum; a keeper mends
+WHAT    : every file is written to two copies with a mark and a sum; keeper_turn checks a copy a latch and mends a bad copy
+          from the good one. file_spoil exists to plant a fault so the keeper can be seen to mend it.
+TRY     : spoil one copy (file_spoil) and count the latches until the keeper mends it. Predict the count from keeper_turn.
+@ // ---------------------------------------------------------------- readings: exact fractions
+Readings: exact fractions over one shared bottom
+WHAT    : rd_mix and rd_add on (value; rate) tops over one bottom; rd_land reduces on purpose; rd_fit refuses WIDE when a
+          top will not fit, and leaves the slot alone (nothing wraps).
+FOUND   : the Uno build now keeps 32-bit tops, so ROOT reaches the book's fourth step 665857/470832 where OS 2 stopped at WIDE.
+          A width is a representation, not the chip (INSIGHTS I4: 0 disagreements before WIDE in 70,000 programs).
+@ // ---------------------------------------------------------------- one step of one program
+vm_step: one step of one program
+WHAT    : decode two bytes, do one of 32 moves on the slots, return 1 when this place's turn is over for this latch.
+WITNESS : a second implementation in Python (OS 3's vm_check) ran 20,008 programs slot for slot against the C machine.
+@ // ---------------------------------------------------------------- what a step costs
+Step weights: measured, plus a stated quarter
+WHAT    : each move's worst cost measured on the Uno by Timer1 around 31,962 single steps of random programs, plus 25 % for
+          what the bench did not reach, landed upward. LINE weighs 61 beats, JMP 2. A beat is 256 Uno cycles.
+RELATION: a step is not a unit; its load is what it did (INSIGHTS: steps as the unit failed on the chip's timing).
+TIER    : the weights are EMPIRICAL worst-seen costs plus a STIPULATED margin. Not a proof of any bound.
+@ // ---------------------------------------------------------------- the flux
+THE FLUX: who steps next, and what each step carries
+RULES   : 1 every step moves its weight from the field into its place's L. 2 the place whose due mark is soonest runs
+          (OR = min). 3 a step pushes its due mark on by weight x (C + L + drag) (AND = +), so a place propagates at
+          C / (C + L + drag) of the supply. 4 drag is the L of every other place that touched the same shared cell this
+          latch or last: found by interaction, never declared. 5 SHOW or WAIT vents a share of L; ending or refusal vents
+          all; past THETA a place keeps KAPPA/16 as a core, vents the rest, goes to the front.
+BOOKS   : k_books checks field + every L = G0 every latch; FIELD turns red on the C3 if they open.
+TRAP    : the books guard conservation, not liveness. INSIGHTS E2: a rule set froze every place with the books shut.
+          A frozen system balances perfectly.
+TRY     : make drag 0 (k_drag returns 0). Predict: two programs fighting over one cell both stay fast and the hog no longer
+          reconfigures sooner than the other; read TASKS' L and RECON columns.
+@ end of KERNEL
+End of the kernel; the hooks by which a step reaches this board
+WHAT    : k_dot, k_line, k_num, k_stick and friends: the kernel never touches a pin or a pixel directly.
+@ // ---------------------------------------------------------------- windows
+Windows: opened through the arena, killed through the flux
+@ // ---------------------------------------------------------------- immediate buttons
+Immediate buttons, and what the eye saw last latch
+@ // ---------------------------------------------------------------- the apps
+The apps: FILES, TASKS, RULES, HEAP, EDIT
+WHAT    : each app draws its own picture and answers its own clicks. RULES edits the kernel's own readings (C, THETA, G0, S,
+          KAPPA, VENT, DRAG) and keeps them in flash after the files.
+@ // ---------------------------------------------------------------- the ghost hand
+The ghost hand: aims at what the eye saw, and plays
+WHAT    : the ghost clicks buttons it found on the last frame's picture, so the bench plays the whole OS through.
+FOUND   : the bench's stand-ins did not clip: 198 false mismatches; with that fixed, stepping to the first difference found a
+          real OS 2 bug (an int8_t pen). INSIGHTS: a mismatch says two witnesses disagree, not which is wrong.
+@ // ---------------------------------------------------------------- the frame
+The frame: hands, one latch of every task, one picture, its change sent
+WHAT    : the latch has a fixed supply of beats, so no program can stretch the frame (README). Only changed tiles are sent.

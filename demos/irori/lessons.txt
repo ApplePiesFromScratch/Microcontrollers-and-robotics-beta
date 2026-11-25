@@ -1,0 +1,93 @@
+# IRORI 2 (ESP32-C3 + ST7789). Lessons are inserted above each anchor by tools/lessons.py.
+@ // IRORI 2 (囲炉裏, the hearth)
+LESSON MAP: IRORI 2, an everyday OS for the C3: twelve apps, one owner a pin, settings kept twice
+SKILL      : a board mapped as relations (who owns each pin, asked every time); the clock read only as its change; hands as
+             readings turned into events; settings kept in two copies with sums and mended; a self-test with planted faults.
+BENCH      : cd bench && gcc -O2 -w -o /tmp/isel desk/selftest.c && /tmp/isel        (46 checks, 12 of them planted faults)
+             gcc -O2 -w -o /tmp/idesk desk/desk.c && /tmp/idesk 600 | tail -2       (the ghost tours the apps)
+             desk == emulated chip: bash bench/check_chip.sh 600                    (needs MCR_X)
+READ FIRST : demos/irori/README.md; docs/BOARD_MAPPING.md (IRORI is the worked case); docs/OS_GUIDE.md.
+SECTIONS   : 2 core pasted | 3 types | 4 the hardware a build provides | 5 screen | 6 letters | 7 small words | 8 exact fractions
+             9 input events | 10 roles and presets | 11 THE KEEPING | 12 PINS AND THEIR OWNERS | 13 frame, home, windows
+             14 the hands | 15 readings and rate(A, B) | 16 the applications | 17 home screen | 18 the ghost | 19 one latch
+             20 the wire | 21 the hardware layer | 22 buttons by interrupt | 23 boot trouble | 24 run
+@ // ---------------------------------------------------------------- IRORI itself
+One file pasted from core/irori.h and board/irori_board.cpp (bench/tools/make_ino.py). Edit the core; regenerate.
+@ /* ---------------------------------------------------------------- every type first
+Types first (the IDE's prototype step, CI 63)
+@ /* ---------------------------------------------------------------- the hardware, provided by each build */
+The hardware a build provides
+WHAT    : the core asks for pins, ADC, PWM, servo, I2C, serial, a millisecond count and storage through hal_* functions.
+          The desk, the bare emulator image and the board each supply their own, so one core runs in three places.
+@ /* ---------------------------------------------------------------- screen
+Screen: one byte a dot through a palette; themes swap palettes
+FOUND   : the day theme had low contrast and the icons were darkened (IRORI 2 notes). Look at the picture.
+@ /* ---------------------------------------------------------------- letters
+Letters: 5 x 7 (OS 4's face, with a few more)
+@ /* ---------------------------------------------------------------- small whole-number words
+Small words and mouth, no libc (the bare build has none)
+@ /* ---------------------------------------------------------------- exact fractions
+Exact fractions: the calculator and rate(A, B)
+WHAT    : ex_make, ex_op, ex_fits: tops and bottoms in whole numbers, refused by name when they will not fit.
+@ /* ---------------------------------------------------------------- input: events
+Input: events, one a latch
+WHAT    : a queue of events (os_push); apps read one event a latch, so two presses in one latch are two events, not one.
+@ /* ---------------------------------------------------------------- the hands' roles
+The hands' roles and presets
+WHAT    : which button does what is a setting (a role), not wiring. Presets set roles in one step; keys_mode for the keyboard.
+@ /* ---------------------------------------------------------------- the keeping
+THE KEEPING: two copies, each with a sum; a keeper mends; changes save themselves
+WHAT    : settings live in two copies, each with an FNV sum. At boot the good copy is loaded; keeper_turn rewrites a bad copy
+          from the good one; autosave_latch saves a change after it has stood still a while. carry_v1 reads IRORI 1's layout.
+WHY     : flash can be cut mid-write by a power-off. Two copies and a sum make that a reading (which copy is good), not a loss.
+@ /* ---------------------------------------------------------------- pins: the user's GPIOs, and who else uses them */
+PINS AND THEIR OWNERS: the board map as a relation, asked every time
+WHAT    : the user's pins are GPIO 0, 1, 2, 3, 8, 9, 20, 21. pin_user(pin, me) answers who else owns a pin, in a stated order:
+          hands, I2C (8 and 9), SERVO, TIMER, RULES, then PINS. pin_apply refuses to touch a pin someone else owns.
+RELATION: "pin 8 is I2C" is not a property of pin 8. It holds while I2C is on, and the answer is computed from the settings
+          each time, so changing one setting can never leave two owners on one pin.
+ANALOG  : is_analog(pin) is pin <= 4: ADC1 on the C3 is GPIO 0-4 (docs/BOARD_MAPPING.md section 2).
+TRY     : do practice/p11_board_map, then compare your map's owners with pin_user's order.
+@ /* ---------------------------------------------------------------- the frame: bars, home, windows, forms */
+The frame: bars, home, windows, forms
+WHAT    : the clock text shows clock_total, a sum of measured changes (section 19), never a wall time read directly.
+@ /* ---------------------------------------------------------------- the hands: buttons and stick as readings
+The hands: readings turned into events by the roles chosen
+WHAT    : a press is counted between two latches (taps), a hold is a run of latches, a long hold is a longer run. The event a
+          press makes depends on the role chosen for that button.
+FOUND   : hands_reset must leave each button as already-down (bt_was = 1), or a button held through a reset fires a press.
+          A press counted while down starts a new hold. home() was consuming keys meant for the keyboard (IRORI 2 notes).
+@ /* ---------------------------------------------------------------- readings: a value and its change, and rate(A, B) */
+Readings: a value and its change; rate(A, B)
+WHAT    : read_pin returns a reading with its change since the last latch. rate_of(A, B) divides A's change by B's change and
+          answers theta when B did not move, shown by name on the PLOTTER.
+@ the applications */
+The applications: PINS, PLOTTER, SERVO, RULES, TERMINAL, I2C SCAN and the rest
+WHAT    : each app has an app_* (draw and answer events) and a tick_* that runs even when the app is not in front, so
+          several run at once. RULES: WHEN something THEN something, eight rules kept with the settings.
+@ the apps, their icons, and the home screen
+The apps table, icons and the home screen
+@ /* ---------------------------------------------------------------- the demo
+The ghost: tours the apps when left alone; it is also the self-test's hand
+@ /* ---------------------------------------------------------------- one latch of the OS */
+One latch of the OS
+CLOCK   : dclock = now - clock_last; clock_total += dclock. The clock is read only as its change, and every timer in the OS
+          counts down by dclock: no app holds a wall time (the project's no-independent-variable rule, at the OS level).
+@ // ---------------------------------------------------------------- the panel's wire
+The wire and OS 4's change-only glass: only changed tiles are sent
+@ // ---------------------------------------------------------------- the hardware layer IRORI asks for
+The hardware layer: the board's answers to hal_*
+WHAT    : i2c_check protects the bus pins before probing; hal_store_* keeps the two copies in flash.
+@ // ---------------------------------------------------------------- hands: each button counted
+Buttons counted by interrupt, debounced by time
+WHAT    : bt_isr counts a press on the falling edge, ignoring edges within 25 ms of the last (debounce by time, in micros).
+          hal_buttons catches up an edge lost inside a bounce from the level, so a tap shorter than a latch is not lost.
+TRAP    : the interrupt and the latch share counters, so both sides take bt_mux. Remove the critical section and a press
+          can be counted twice or lost when the ISR fires mid-read.
+@ // ---------------------------------------------------------------- starts that followed trouble
+Starts that followed trouble
+WHAT    : trouble_n counts panic, watchdog and brownout resets in a row, in RTC memory that survives a reset but not a power-off.
+          Three in a row, or A or B held at power-on, and the OS starts safe (no profile, no ghost), so a bad setting cannot lock
+          the board in a reset loop.
+@ // ---------------------------------------------------------------- run
+Run: setup, loop

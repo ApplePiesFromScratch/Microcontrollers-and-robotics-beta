@@ -1,0 +1,81 @@
+# TATER-CHAN (ESP32-C3 + ST7789). Lessons are inserted above each anchor by tools/lessons.py.
+@ // TATER-CHAN ASCENDS
+LESSON MAP: TATER-CHAN, a 70-second anime film with no clock and no float
+SKILL      : every motion is a rate carried from the frame before and every stage a countdown; per-distance work done once a
+             frame instead of per dot; headings found without an arctangent; a carried rotation landed back on true in whole
+             numbers; a picture that remembers (a feedback field) as the cheapest effect on the chip.
+BENCH      : cd bench && gcc -O2 -w -o /tmp/ttwin desk/twin.c && FRAMELINES=1 /tmp/ttwin 600 x | tail -3
+             desk == emulated chip: bash bench/tools/check_c3.sh 2130   (needs MCR_X; README: 8,520 frames identical)
+READ FIRST : demos/tater/README.md ("The math"); docs/METHOD.md sections 6 and 8.
+SECTIONS   : 2 types | 3 the mouth | 4 TATER | 5 ring, scatter, roots | 6 colour | 7 tables at boot | 8 THE FIELD
+             9 the 3-D face | 10 spheres in depth order | 11 backgrounds by the row | 12 letters | 13 THE STORY | 14 the frame | 15 run
+NO CLOCK   : search this file for micros or millis outside the mouth and the frame-time print. Every stage ends because a
+             countdown reached 0; every motion moves because a carried rate was latched.
+@ // ---------------------------------------------------------------- every type first
+Types first (tater.h, pasted by bench/tools/make_c3.py under HIGH NOON's board mouth; CI 63)
+@ // ---------------------------------------------------------------- the mouth: FAREY's queue
+The mouth: HIGH NOON's DMA queue
+CUT     : BGR_ORDER at the top. James's panel showed red and blue swapped under HIGH NOON's setting, so this sketch's default
+          matches his panel. Colour order belongs to the panel batch, not to the picture.
+@ // ---------------------------------------------------------------- TATER-CHAN (tater.h)
+TATER-CHAN's core begins
+@ /* ================================================================ the ring, the scatter, counted roots */
+The ring, the scatter, counted roots
+WHAT    : fsin and fcos read a turning table grown once from a Pythagorean ring (no sine computed). f_draw is the stated
+          scatter. isq is a counted root: the root read from a table where a unit vector needs its third part.
+@ /* ================================================================ colour */
+Colour: ramps turned, not computed per dot
+WHAT    : grow_ramps builds the colour ramps at boot; palette_turn rotates which ramp a level reads, so a whole scene changes
+          colour for the price of one table pass.
+@ /* ================================================================ tables grown at boot */
+Tables grown at boot: headings and distances for one quarter of the screen
+WHAT    : each dot of one quarter gets its heading and its distance from the middle, once. The heading is found by asking the
+          64-heading Pythagorean quarter ring which heading the dot is not behind: a sign test of cross products, no arctangent.
+          The other three quarters are read by mirror.
+WHY     : everything about a tunnel dot except its heading depends only on its distance. So once a frame each of 256
+          distances gets its depth, twist, bend, fog and 16 colours, and a dot costs two table reads.
+TRY     : count the work: 76,800 dots a frame against 256 distances a frame. Write the ratio, then find the loop that
+          does the 256 (tunnel_prep).
+@ /* ================================================================ the field: a picture that remembers
+THE FIELD: a picture that remembers
+WHAT    : 160 x 120 levels (hue << 4 | level). Each frame every dot takes what was a little nearer the middle, turned by a
+          small heading, one level dimmer; rows ripple. fpour lays new light only where it is brighter than what is there.
+RELATION: the trail is the field's loaded history: each level is what was laid, minus what was dimmed since. Nothing stores
+          "trail". The Julia set poured into it leaves its own past behind as the phase moves.
+HOLDING : u, v walk in 16.16 across a row by adding (zc, zs): a turn and a zoom as two adds a dot.
+TRY     : set dec to 0. Predict: nothing fades, the field fills to the brightest hue everywhere within a few hundred frames.
+@ /* ================================================================ the potato's 3-D face
+The face, painted on the turned body
+WHAT    : the surface direction comes from the dot's place across the body; its third part is a counted root. The face is
+          painted on the TURNED body: the direction goes through a 3 x 3 turn built from her carried yaw and pitch, so eyes,
+          blush and mouth turn with her.
+@ /* ================================================================ objects: shaded spheres
+Objects: shaded spheres and capsules, in depth order
+WHAT    : arms, legs, wand and ahoge are capsules; the ahoge is a chain, each point lagging the one below it (a carried rate).
+          Cel bands, an ink line, a rim from the scene's light. The squash is sprung (a carried spring), not keyframed.
+@ /* ================================================================ the backgrounds, a row at a time */
+Backgrounds a row at a time
+WHAT    : sky, tunnel, kaleidoscope (heading through a mirror table), field, voxel hills, space. Each is a function of the
+          row, called by the band that is being drawn.
+HILLS   : 128 x 128 heights of four-octave value noise grown at boot; 160 columns walked near to far, drawn only where
+          nothing nearer stands. The README records the hills as first judged by a cost table and read as noise on the glass.
+          Look at the picture (METHOD 9).
+@ /* ================================================================ letters
+Letters, and ゴ
+WHAT    : THE FISH AFFECT's 5 x 7 face plus the ゴ glyph, drawn into the overlay.
+@ /* ================================================================ the story */
+THE STORY: stages ended by countdowns
+WHAT    : story_step counts down the current stage and starts the next at 0. Nine stages, about 70 seconds, then it loops,
+          a little worse each loop (her denial gets louder): the loop count is a counter, read as a reading.
+SWARM   : little potatoes on a (2, 3) torus knot. Their orientation is a carried rotation, nudged about two axes each frame,
+          then landed back on true by Gram-Schmidt in whole numbers, so drift never builds.
+TRY     : remove the Gram-Schmidt step. Predict: the swarm's potatoes shear and grow over several loops (the rotation leaves
+          true by rounding each frame). Look at frames 2,000 and 8,000.
+@ /* ================================================================ the frame */
+The frame: prep, bands, post
+WHAT    : prep once, then each band: background row, objects, overlay, post (glitch shifts rows by even amounts so whole
+          words move; colour split; impact frames through a 256-entry table on the wire's low byte; flash as one OR a word).
+BENCH   : tater_print folds the story's state and every byte sent into one print per frame, compared desk against chip.
+@ ---------------------------------------------------------------- run
+Run
+WHAT    : the Serial Monitor prints TATER REAL frame avg ... us; the FPS in the corner during madness is measured on the board.

@@ -1,0 +1,2 @@
+{"files": {"practice/work/p07_KILL_LINES.md": "badbd64eadeab693bf7b10fb2e1df217a282c227187fab61a6f6ce39e0db5c97"}, "kind": "read", "n": 1, "prev": "", "t": "2026-11-25T11:16:16+1300", "text": "p07 sealed read: threshold 33: tune 181/200, sealed 176/200"}
+{"files": {"practice/work/p07_KILL_LINES.md": "badbd64eadeab693bf7b10fb2e1df217a282c227187fab61a6f6ce39e0db5c97"}, "kind": "seal", "n": 2, "prev": "6c8933af78bcfe05d0a6a20ed052e422c85acba7ecd9bbd72abccf027037c402", "t": "2026-11-25T11:16:16+1300", "text": "sealed p07_KILL_LINES.md"}

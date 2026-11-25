@@ -1,0 +1,108 @@
+# HIGH NOON (ESP32-C3 + ST7789). Lessons are inserted above each anchor by tools/lessons.py.
+@ // HIGH NOON: a first-person shooter
+LESSON MAP: HIGH NOON, choosing the construction in which the correction never arises
+SKILL      : the carry rule as a ray walker; a ray built so its length is already the square-on depth (no fisheye, no angle);
+             distance and sun as palette reads, not per-dot arithmetic; art grown from rules; a ghost that plays the game so
+             desk and chip can be compared dot for dot.
+BENCH      : gcc -O2 -w -DSKETCH='"../demos/highnoon/highnoon.ino"' -o /tmp/hn ../../tools/desk_panel.c && /tmp/hn 600
+             (prints a panel hash each 50 frames; SHOTS=/tmp/dir writes PPM frames to look at)
+READ FIRST : demos/highnoon/README.md; docs/METHOD.md section 5 step 6 ("choose the construction in which the correction never arises").
+SECTIONS   : 2 shapes | 3 mouths | 4 panel | 5 tools | 6 face | 7 ring | 8 materials and palettes | 9 noise | 10 walls and floors
+             11 sky | 12 THE PICTURES | 13 THE ARENA and the ray walk | 14 WHAT MOVES | 15 a foe's frame | 16 shots, motes
+             17 waves | 18 the player | 19 THE GHOST | 20 hands | 21 WHAT THE EYE SEES | 22 bands | 23 overlay | 24 THE FRAME
+@ // ---------------------------------------------------------------- the shapes of things
+Types first (the IDE writes prototypes above the first function; CI 63)
+@ // ---------------------------------------------------------------- the mouths
+Three mouths, one stream
+WHAT    : DESK stream (decoded by tools/desk_panel.c), FIFO for the emulator, FAREY's DMA queue on the board. One source.
+@ // ---------------------------------------------------------------- the panel
+The panel
+WHAT    : ST7789 window and write. Flags at the top (RGB_ORDER, NO_INVERT, ROT180, SAFE_SPI, JOY_*) fix a panel or a stick
+          without touching a rule.
+@ // ---------------------------------------------------------------- small whole-number tools
+Whole-number tools: mouth, mouth64, scatter
+TRAP    : the README records 75 of 2,000 frames drawn differently on chip and desk: two scatter() draws were arguments of
+          one call, and x86 and RISC-V evaluate arguments in different orders. Draw into named values first.
+@ // ---------------------------------------------------------------- the face
+The face: 5 x 7 letters grown at boot
+@ // ---------------------------------------------------------------- the ring
+The ring: 256 headings from one Pythagorean turn, on 16384
+WHAT    : every turn in the game (look, bob, spreads, pulsing lights) reads this table. No sine is computed anywhere.
+@ // ================================================================ WHAT THINGS ARE MADE OF
+Materials: a dot is a ramp and a shade, read through palettes
+WHAT    : every picture is 8-bit: ramp * 16 + shade, 0 = nothing. 17 palettes: sun side and shade side at eight distances
+          fading toward haze, plus struck white. Distance and sun cost one table read per dot.
+RELATION: how a dot looks is a relation (its ramp, the distance band, the side the sun is on), held as an index, landed
+          once into colour at the palette. The picture never stores colour.
+@ // ---------------------------------------------------------------- noise
+Noise: a hash on the lattice, read between its points
+WHAT    : hsh, vnoise, fbm64: whole-number value noise. A texture is a rule of place, the same every boot.
+@ // ---------------------------------------------------------------- the walls and floors
+Walls and floors: 64 x 64, grown by rules
+WHAT    : stone, brick, steel, crates, tech, vines: each a short rule (blocks staggered, bevels, mortar). Stored a column at a
+          time because the ray reads a wall a column at a time: the storage follows the reader.
+@ // ---------------------------------------------------------------- the sky
+The sky: a gradient, drifting clouds, two ridges
+WHAT    : a 256 x 64 density map read with a drift; mountains at the rim keyed to the look. The sky is not a ray cast.
+@ // ================================================================ THE PICTURES
+The pictures: robots, flames, pickups, guns, drawn by rules into one pool
+WHAT    : a lit dome per shape: the slope of an ellipse at each dot against a sun up and to the left (a dot product and one
+          root, whole numbers). Outlined dark so they read at a glance.
+BUDGET  : one pool of 112,000 bytes; the README records 104,972 used. The uploaded spr_new returned -1 past the pool without
+          counting the slot; callers ignored -1, so every later id shifted and ospr read past the pool. Fixed here (FIXES.md F1):
+          a refused picture is an empty one, ids stay in place, sp_refused is printed at boot.
+TRY     : set SPPOOL 60000 and build the desk twin with -fsanitize=address, once from original/ and once from this file.
+          Predict: original overflows in ospr; this file runs and the boot line counts the refusals.
+@ // ================================================================ THE ARENA
+The arena and the ray walk
+MAP     : the 32 x 32 map between the MAP markers was made and checked by tools/make_map.py (walled, all 798 open squares
+          reachable). The map is data with its check named.
+CAST    : the carry rule in two directions: from (x, y) along (rx, ry), take the nearer of the next x-line and the next
+          y-line, add its step. No angle, no tangent. ddx = 2^30 / |rx| is the step along the ray per x-line.
+WHY     : the ray is built as look + lean x camera (section 21), so the length to the wall along it is already the depth
+          along the look. The fisheye correction (multiply by cos of the angle) never arises, because no angle was used.
+TRY     : normalise each ray to unit length before cast (divide by its length). Predict: walls bow outward at the screen
+          edges (the fisheye), by the factor sqrt(1 + 0.66^2) = 1.20 at the edge columns.
+@ // ================================================================ WHAT MOVES
+What moves: motes, bursts, shots, foes, kills
+WHAT    : every moving thing holds a place and a carried rate in 16.16 squares; each frame the rate is latched into the place.
+RULE    : a step is tried one axis at a time; blocked() tests four corners of the thing's radius; a refused axis
+          reverses its rate at half (f->vx = -f->vx / 2). C's / truncates toward zero, so a rate of 1 stops dead.
+@ // ---------------------------------------------------------------- a foe's frame
+A foe's frame
+WHAT    : a foe sees the player by the same cast as the eye, walks the flood downhill, and fires. One rule of sight for all.
+@ // ---------------------------------------------------------------- shots, motes
+Shots, motes, flames, pickups: each latched once a frame
+@ // ---------------------------------------------------------------- the waves
+Waves: counted, with the Titan every fifth
+@ // ---------------------------------------------------------------- the player
+The player
+WHAT    : the hands become rates; the rates are latched into the place, refused at walls.
+@ // ================================================================ THE GHOST
+THE GHOST: a player made of the game's own readings
+WHAT    : looks for a foe it can see, turns until the centre line passes through it, fires. With nothing in sight it walks
+          the flood toward a goal and string-pulls: steers for the farthest square of its path it can see.
+WHY     : the ghost lets the bench play 9,000 frames on the desk and 2,000 on the emulated chip and compare every dot. A game
+          nobody can play on the bench has no second witness for its play.
+FOUND   : the ghost first hugged walls (steering for the next square's centre) and never picked up a gun (README).
+@ // ================================================================ THE HANDS
+The hands: stick and buttons, read once a frame
+@ // ================================================================ WHAT THE EYE SEES THIS FRAME
+What the eye sees: the one view rule
+WHAT    : grow_view lands the camera's lean per column once: PLX[x] = mouth((2x - 319) * 16384 * 66, 320 * 100), so the edge
+          columns lean 0.66. Each column's ray is look + PLX[x] * the look turned a quarter.
+RULE    : a thing at (wx, wy) goes to the glass by depth along the look and side across it, scaled by PPU / depth with
+          PPU = 242. Walls, robots, shadows all use this one rule, so they agree on where things are.
+@ // ================================================================ THE BANDS
+The bands: background, things far to near, dots, then the gun and HUD
+WHAT    : 15 bands of 16 rows. Floors: each row's distance is one divide (242 / (2 row + 1)), then two adds a dot.
+BUDGET  : the README records 21 ms of the 29.4 ms average in these bands. The wire takes about 31 ms a frame at 40 MHz and
+          runs beside them on DMA, so the wire sets the pace.
+@ // ---------------------------------------------------------------- the overlay
+The overlay: light added, never a lit scene
+WHAT    : muzzle flashes, tracers, explosions, the hurt edge: light added to a dot already drawn (addc), clipped to the band.
+@ // ================================================================ THE FRAME
+The frame
+WHAT    : world_step, camera, then each band: background, shades, bills, dots, overlay, send. DESK builds print a line
+          (desk_line) and the books (waves, kills, shots, hurt, deaths, barrels).
+BENCH   : the emulator's F lines and the desk's lines carry the same print; the README records 2,000 of 2,000 identical.

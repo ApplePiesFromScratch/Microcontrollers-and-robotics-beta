@@ -1,0 +1,117 @@
+# TIDE (ESP32-C3 + ST7789). Lessons are inserted above each anchor by tools/lessons.py.
+@ // TIDE: a computer that runs backward.
+LESSON MAP: TIDE, a machine in which no instruction loses a bit
+SKILL      : the carry taken to a whole instruction set; a checker that refuses lossy instructions before they run;
+             run-back as the test; float beside it as the control that fails.
+BOARD      : ESP32-C3 SuperMini + 2.0" ST7789, wired as every C3 demo here (docs/BOARD_MAPPING.md).
+BENCH      : gcc -O2 -w -I. -o /tmp/tide bench/desk.c && /tmp/tide 2000      (prints a line each 100 frames, then BOOKS)
+             or: gcc -O2 -w -DSKETCH='"../demos/tide/tide.ino"' -o /tmp/t ../../tools/desk_panel.c && /tmp/t 600
+READ FIRST : docs/METHOD.md section 7 (latch, transfer, run back); teach.py lessons 7 and 10.
+SECTIONS   : 2 shapes | 3 mouths | 4 panel | 5 tools | 6 face | 7 ring | 8 THE MACHINE | 9 exact turns | 10 picture stirs
+             11 the world (leapfrog balls) | 12 tape | 13 exec1 | 14 the checker | 15 programs | 16 starts | 17-19 drawing
+             20 director and ledger | 21 picture | 22 overlay | 23 hands | 24 the frame
+THE EQUATION: at step 0 again, the whole state (registers, memory, picture, 400 balls) equals the start, compared word for word.
+@ // ---------------------------------------------------------------- the shapes of things
+Types first
+WHAT    : every struct and typedef sits above the first function. The Arduino IDE writes function prototypes above the
+          first function it finds; a prototype that names a type declared lower fails to compile (CI 63, 64).
+TRAP    : no types inside functions, no one-letter macros. tools in demos/*/bench/tools/ide_check.sh run the IDE's own step.
+@ // ---------------------------------------------------------------- the mouths
+Three mouths, one stream
+WHAT    : the same calls (m_cmd, m_data) go to three places: the DESK stream (decoded by a panel stand-in on the desk),
+          a FIFO for the emulator (MOUTH_FIFO), and FAREY's DMA queue on the board. One source, three builds.
+WHY     : desk == emulated chip is only a witness if both run the same source. The stream is the sketch's own bytes.
+TRY     : build the desk twin twice, gcc -O0 and clang -O2. Predict identical F lines. A difference names a width or order bug.
+@ // ---------------------------------------------------------------- the panel
+The panel: ST7789 commands, landed once
+WHAT    : cmd, window (0x2A columns, 0x2B rows), 0x2C write. RGB_ORDER, NO_INVERT, ROT180 flip what each panel batch needs.
+CUT     : colour order is a property of the panel batch, not of the picture. Two panels of the same part number differed (TATER README).
+@ // ---------------------------------------------------------------- small whole-number tools
+Whole-number tools
+WHAT    : mouth and mouth64 land a fraction once (nearest, half to even). scatter is the stated scatter rule (a fixed-seed
+          generator), so desk and chip draw the same sequence.
+TRAP    : mixc and clampi are used only at the picture's edge, never inside a rule that must run back.
+@ // ---------------------------------------------------------------- the face
+The face: 5 x 7 letters grown at boot
+WHAT    : grow_face builds the glyph table from rules at boot. Nothing is a stored image.
+@ // ---------------------------------------------------------------- the ring
+The ring: 256 headings grown by one Pythagorean turn
+WHAT    : one exact heading composed with itself; each composition snapped half to even past a cap. unit16 reads a heading on 16384.
+RELATION: a direction is two whole numbers (P : Q); c*c + s*s = d*d exactly before any landing.
+@ // ================================================================ THE MACHINE
+THE MACHINE: every instruction has an exact inverse
+RULE    : a register may be changed only by adding something read from OTHER registers (a += f(b, c)), by a swap, by an exact
+          turn of a pair, or by a permutation of the picture or the world. Each of these is undone by its mirror.
+WHY     : an instruction loses information exactly when two inputs give one output (teach.py lesson 10: x+x is 2-to-1 on
+          128 of 256 values; x*5 is 1-to-1 on all 256). Refuse every 2-to-1 instruction and nothing needs to be saved to rewind.
+HOLDING : 32-bit registers that wrap (mod 2^32). Wrapping is a bijection, so it is allowed; a clamp is 2-to-1, so it is not.
+S       : the step label counts latches up going forward and down going back. It is a count, not a time.
+@ // ---------------------------------------------------------------- exact turns of a pair
+Exact turns: three shears
+WHAT    : x -= mouth(y*P/Q); y += mouth(x*2PQ/(P^2+Q^2)); x -= mouth(y*P/Q). Each shear adds a function of the OTHER
+          coordinate, so each is undone by subtracting the same amount. The turn loses no point of the whole-number plane.
+FOUND   : practice/p03_heading: rounding the plain rotation is also a bijection for (1:2), (2:3), (1:7), (3:4) and not for
+          (1:4), (2:5), (1:6). A test set drawn from one family is one witness (docs/ERRORS.md C8).
+TRY     : replace the second shear's mouth64 with a floor (>>). Predict: still reversible (any f works), but turn(-p) != -turn(p).
+@ // ---------------------------------------------------------------- the picture
+The picture: stirring only moves dots
+WHAT    : stir_rows and stir_cols rotate a row or column by an amount read from registers. A rotation is a permutation, so
+          the colour count of the picture is unchanged by construction, and the stir runs back exactly.
+@ // ---------------------------------------------------------------- the world
+The world: next = 2 now - before + push(now)
+WHAT    : the balls held as (now, before): 232 in SHATTER (the header comment says 400; README and run say 232).
+          Forward: write next over before, swap. Back: swap, then the SAME formula.
+WHY     : push may be any rule of where things are now (contact, gravity, walls) because the same push is added one way and
+          subtracted the other. Rounding inside push is allowed; rounding of the state is not.
+CONTROL : leap_f and blast_f run the same formulas, same order, in float (FORGET). Float rounds the state every step, so it
+          does not come home. Project record: SHATTER home 232 of 232; FORGET home 0 of 232.
+TRAP    : any input the push reads must be looked up by the step label of now, the same in both directions (CI 139:
+          the first Undo labelled its tilt differently going back and did not return).
+@ // ---------------------------------------------------------------- the tape
+The tape: only what came in from outside is kept
+WHAT    : TAPE[S] holds the hands' two bytes for step S. IN xors them into a register; running back xors them out.
+NUMBER  : rewinding 360 steps costs 213 bytes of hand input against 28 MB of snapshots (MISSING_MACHINE, project record).
+@ // ---------------------------------------------------------------- one instruction, either way
+exec1: one instruction, either way
+WHAT    : forward runs the list top to bottom then S++; back does S-- then runs the list bottom to top, each instruction
+          by its mirror (ADD by SUB, ROL by ROR, MULO k by its inverse multiplier mod 2^32).
+TRY     : swap the order in tick() for dir < 0 (run the list top to bottom going back). Predict: MARBLE does not come home,
+          because ADD 4,1 then ADD 4,7 commute but IN 7 then ADDI 7 do not.
+@ // ---------------------------------------------------------------- the checker
+The checker: refuse before running
+REFUSES : a register read and written by one instruction (ADD R3,R3 doubles R3 and loses its top bit); an even MULO
+          (2-to-1 mod 2^32); an instruction that writes its own predicate; TURN of one register; EXCH of its own address.
+WHAT    : MULO k is accepted only with k odd; its inverse v is found by Newton's step v *= 2 - k*v, five times (k*v = 1 mod 2^32).
+WITNESS : project record: of 50,000 random instructions, the checker accepted 37,918 and every accepted one undid exactly.
+TRY     : load BAD1, BAD2, BAD3. Predict the three refusal strings shown on the glass, word for word, from this code.
+@ // ================================================================ THE PROGRAMS
+The programs, as data
+WHAT    : MARBLE stirs a picture; SHATTER blasts 400 balls, gravity on, every ball latching; FORGET is SHATTER in float.
+          BAD1..BAD3 exist only to be refused.
+@ // ---------------------------------------------------------------- the starting states
+Starting states, grown by rules
+WHAT    : the picture and the word of balls are grown from rules at load. state_print hashes the whole state so step 0
+          can be compared with the start, word for word.
+@ // ================================================================ DRAWING TOOLS
+Drawing that clips to the band
+WHAT    : the screen is drawn 16 rows at a time into a small strip, sent, then the next strip. Every drawing call clips to
+          the band. This is the budget rule: a full 320 x 240 frame of 16-bit colour is 153,600 bytes.
+@ // ================================================================ THE DIRECTOR
+The director and the ledger
+WHAT    : which program runs, which way, how many steps a frame; at step 0, count_home compares every word with the start.
+SHOWN   : bits destroyed by the machine (0 for every accepted program), bytes taken from the hands, and the verdict.
+@ // ================================================================ THE PICTURE
+The picture
+WHAT    : grow_colours and grow_room build palettes and the room once; picture_band reads the machine's state into a band.
+@ // ================================================================ THE OVERLAY
+The overlay: the program listing as it runs
+WHAT    : the instruction list is shown with forward names going forward and the mirror names (SUB, ROR, UNSTIRX) going back.
+@ // ================================================================ THE HANDS
+The hands
+WHAT    : hold B and time runs back; let go and it runs on, replaying the tape unless the hands now do something new.
+          A new future drops the old one (futures_dropped counts them).
+TRY     : find whether pad_read ignores the first frames after reset (CI 118: the first read can be wrong). Say what you found.
+@ // ================================================================ THE FRAME
+The frame
+WHAT    : one frame = the director's steps, then 15 bands drawn and sent. DESK builds print a line and the books.
+BENCH   : the desk line and the emulator's UART line carry the same print; compare them line for line.

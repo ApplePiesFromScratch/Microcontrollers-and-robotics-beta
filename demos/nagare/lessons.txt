@@ -1,0 +1,81 @@
+# NAGARE (ESP32-C3 + ST7789). Lessons are inserted above each anchor by tools/lessons.py.
+@ // NAGARE (流れ, flowing)
+LESSON MAP: NAGARE, the textbook's fluid and the letters' fluid on one screen
+SKILL      : de-reifying a field theory into hand-ons between neighbours; kill lines written and hashed before the runs;
+             amendments logged before the reads they govern, failures kept; books shown EXACT every step.
+BENCH      : cd bench && gcc -O2 -w -o /tmp/nsel desk/selftest.c && /tmp/nsel        (N1-N5 on the desk)
+             gcc -O2 -w -o /tmp/ndesk desk/desk.c && /tmp/ndesk 600 | tail -3      (the desk twin's prints)
+             desk == emulated chip: bash bench/check_chip.sh 600                   (needs MCR_X)
+READ FIRST : bench/KILL_LINES.md, then bench/AMENDMENTS.md (A1-A4), then demos/nagare/README.md. Order matters: the kill
+             lines were sealed first (bench/KILL_LINES.sha256) and each amendment before the read it governs.
+SECTIONS   : 2 core pasted | 3 shared heater | 4 OURS: hand-ons | 5 TEXT: stable fluids in Q16 | 6 a puff | 7 letters
+             8 small words | 9 readings | 10 the frame | 11 hands | 12 the wire | 13 the readings NAGARE asks for
+THE EQUATIONS (ours, every step): stuff = start; warmth = start + fed - vented; each momentum component = start + given by walls.
+@ // ---------------------------------------------------------------- NAGARE itself
+One file pasted from three
+WHAT    : tools/make_ino.py pastes core/sim.h, core/nagare.h and core/draw.inc under board/nagare_board.cpp. The desk, the
+          bare emulator image and the board build all compile the same core. Edit the core, regenerate, never edit this file.
+@ /* ---------------------------------------------------------------- shared: the heater
+Shared: the heater and the scale of warmth
+WHAT    : both sides read the same heater cells and the same warmth scale, so the screen compares rules, not inputs.
+@ /* ================================================================ OURS: hand-ons only */
+OURS: every change is a hand-on between neighbours
+HOLDING : each place holds M (stuff), PX and PY (carried rate as momentum) and Q (warmth), all whole numbers.
+LETTERS : MOVE: a place's packet goes where its rate takes it, split over the four places it lands on (bilinear), the
+          leftover unit to the biggest share, so the split is exact. Reflection at walls is booked as momentum the wall gave.
+          PUSH: crowding on both sides of a face becomes rate (KP). DRAG: neighbours trade rate (KN). EXCHANGE: crowding
+          handed down its own difference (KX), which kills the checkerboard a collocated grid makes.
+          LIFT: a place warmer than the box as a whole is handed upward rate, cooler ones downward; the ground's give is counted.
+          FEED and VENT: counted in and out.
+WHY     : each letter moves a kept quantity from one place to another. Nothing is set. So the books are FORCED by construction
+          and the step is a trade, not dt.
+FOUND   : faces read in sweep order biased the flow; faces now read from a snapshot (all trades from one state).
+FOUND   : LIFT against each neighbour shredded plumes; LIFT against the box mean (the context) does not.
+TRAP    : qdiv divides in 32 bits when the operands are proven to fit and in 64 otherwise. A 64-bit divide by a variable is a
+          library call on this chip; ten a place a latch cost 40 ms (A3).
+TRY     : in a face trade, give the receiver one unit more than the giver loses. Predict: N1 fails at latch 1; the books
+          line on the glass inverts. That is N4's control, written the other way.
+@ /* ================================================================ TEXT: the textbook, stable fluids in Q16 */
+TEXT: the textbook, as taught, in Q16
+WHAT    : Stam's stable fluids: body force (lift), viscous diffusion, pressure projection by 20 Jacobi sweeps for
+          continuity, semi-Lagrangian advection, heat advected and conducted. DT 1/4, BETA 1/4, NU 1/50, KAPPA 1/40.
+          Values are Q16 fixed point (65536 = 1).
+FOUND   : the floor-rounded multiply drained heat every step. qmul now rounds to nearest; a double-precision desk run
+          (desk/text_double.c) agrees with this Q16 run to about a percent.
+READING : its continuity residual and heat-book gap are measured and printed, not judged (N5). It is the reference method,
+          and its books are open by design: projection is iterative and advection interpolates.
+TRAP    : i0 * ONE, not i0 << 16: a left shift of a negative number is undefined in C (UBSan found it).
+@ /* ================================================================ a puff
+A puff: the same disc of warmth on both sides, booked as fed
+WHAT    : a disc of warmth laid at the floor. It exists because N2 FAILED as written: with a steady heater, ours' lift
+          (against the box as a whole) pools heat at the floor. The failure stays in the record (A1). The scene changed to puffs.
+TIER    : KL = 24 was chosen after looking (A2). It is a tuning, named as one. Neither side's pace is a result.
+@ /* ---------------------------------------------------------------- letters: 5x7
+Letters, with glyphs for the equations
+WHAT    : the left pane writes continuity, Navier-Stokes and the energy equation on the glass; extra glyphs draw the
+          partial, nabla, dot, squared, rho, nu and kappa. The right pane writes the letters instead.
+@ /* ---------------------------------------------------------------- small whole-number words
+Small words, no libc
+WHAT    : the bare emulator image has no C library, so number-to-text is written here once and used by all three builds.
+@ /* ---------------------------------------------------------------- what the board gives
+Readings the board gives
+WHAT    : buttons, stick and a cycle counter come in through three functions (section 13). The core never touches a pin.
+@ /* ---------------------------------------------------------------- the frame */
+The frame: one step of each side, then the picture
+WHAT    : views of warmth, speed and turning (circulation round small loops), read from each side's state at the same cut.
+CUT     : turning is read round 4 x 4 loops. A different loop size reads a different turning (FLOWING: a turning holds over a
+          band of cuts). Say the loop size with every turning number.
+FOUND   : per-dot divisions in the drawing became tables made once (A4); the screen's print over the tour is the witness that
+          the picture did not change.
+@ /* ---------------------------------------------------------------- hands and the demo hand */
+Hands and the demo hand
+WHAT    : A a puff at the marker, B heater on/off, C the view, stick the marker, press restarts. 30 s untouched: the demo
+          hand plays, the same on desk, emulator and board.
+TRAP    : nagare_reset must reset every latch the controls read (ours_latch was not reset, so N4's control never fired once).
+@ ---------------------------------------------------------------- the panel's wire
+The wire and the change-only glass
+WHAT    : the panel is sent only the tiles that changed (OS 4, IRORI). glass_forget marks all tiles stale after a reset.
+@ ---------------------------------------------------------------- the readings NAGARE asks for
+The readings NAGARE asks for
+WHAT    : hal_buttons, hal_stick, hal_cycles are the only three things the board gives the core. A desk or emulator build
+          supplies its own three, which is why the same core runs in three places and prints the same lines.

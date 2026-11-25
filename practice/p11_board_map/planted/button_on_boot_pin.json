@@ -1,0 +1,4 @@
+{"pins": {"panel_sck": 4, "panel_mosi": 6, "panel_dc": 5, "stick_x": 0, "stick_y": 1, "stick_press": 2, "button_a": 9,
+          "button_b": 20, "button_c": 21, "i2c_sda": 8, "i2c_scl": 3, "servo": 7},
+ "tied": {"panel_cs": "gnd", "panel_rst": "3v3_rc"},
+ "notes": {"panel_cs": "only device", "panel_rst": "rc", "stick_press": "pull-up", "button_a": "boot button", "button_b": "uart", "button_c": "uart", "i2c_sda": "pull-up"}}

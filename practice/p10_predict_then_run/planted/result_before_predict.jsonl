@@ -1,0 +1,2 @@
+{"files": {"practice/p10_predict_then_run/sample_output.txt": "560f095cd872e038832aa513f1afd10ac6779ccc749f2807d98b2b2f3b4c0576"}, "kind": "result", "n": 1, "prev": "", "t": "2026-11-25T11:17:44+1300", "text": "demos/minamo LESSON 6: rings closed; prediction held"}
+{"files": {}, "kind": "predict", "n": 2, "prev": "b83a5fcdc845bae1433b90de3e01233f122213a422e6ec3701580508d315b9ff", "t": "2026-11-25T11:17:44+1300", "text": "demos/minamo LESSON 6 TRY: rings close"}

@@ -1,0 +1,2 @@
+{"pins": {"panel_sck": 4, "panel_mosi": 6, "panel_dc": 5, "panel_cs": 7, "panel_rst": 10, "stick_x": 0, "stick_y": 1, "stick_press": 2,
+          "button_a": 3, "button_b": 20, "button_c": 21, "i2c_sda": 8, "i2c_scl": 9, "servo": 10}, "tied": {}, "notes": {}}

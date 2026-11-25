@@ -1,0 +1,75 @@
+# CANDLE (ESP32-C3 + ST7789). Lessons are inserted above each anchor by tools/lessons.py.
+@ // CANDLE, for the ESP32-C3 SuperMini
+LESSON MAP: CANDLE, the lever: a value carried with its rates, read every frame
+SKILL      : readings with three rate slots computed once by the book's moves (mix, derived division, averaging root);
+             then each frame every dot is value + rates x the flame's move: four multiplies a cell. A film look by rules.
+BENCH      : cd bench && gcc -O2 -w -o /tmp/ctwin desk/twin.c && FRAMELINES=1 /tmp/ctwin 300 x | tail -3
+             bench/desk/lever_check.c compares the lever against a full re-cast at moved flames.
+             desk == emulated chip: bash bench/tools/check_c3.sh 300   (needs MCR_X)
+READ FIRST : demos/candle/README.md; docs/MISSING_MACHINE.md (the lever: value, rate per source, latched set); workbook Part V unit V6.
+SECTIONS   : 2 types | 3 the mouth | 4 CANDLE | 5 tools | 6 THE READING | 7 the room | 8 casting at boot | 9 stuff
+             10 THE GRID OF READINGS | 11 camera flaws | 12 the flame | 13 flicker and hand | 14 drawing | 15 run
+THE IDEA   : light(flame at rest + move) = L0 + RATEX*dx + RATEY*dy + RATEZ*dz, per cell, per frame. The rates came out of
+             the same arithmetic as the value, at boot, with no derivative written anywhere.
+@ // ---------------------------------------------------------------- every type first
+Types first
+WHAT    : Rd (a reading: v and r[3]), V3, Spring and the room's arrays sit above the first function (IDE prototype step).
+@ // ---------------------------------------------------------------- the mouth: FAREY's queue
+The mouth: HIGH NOON's DMA queue
+WHAT    : the same panel queue as HIGH NOON and MINAMO. The CPU fills the next row strip while the wire sends the last.
+@ // ---------------------------------------------------------------- CANDLE (candle.h)
+CANDLE's core begins (candle.h, pasted by bench/tools/make_c3.py)
+@ /* ================================================================ whole-number tools */
+Whole-number tools
+WHAT    : c_draw is the stated scatter (xorshift, fixed seed): desk and chip draw the same sequence. mouth_div lands once,
+          half to even. isqrt64 finds the root a bit at a time with no divide (the C3 divides 64 bits only in software).
+@ /* ================================================================ the reading: the book's moves with three rate slots */
+THE READING: the book's moves with three rate slots
+WHAT    : rd_add, rd_sub piece by piece; rd_mix is the two strips (r = r1*v2 + v1*r2); rd_div is the derived division
+          (s = (r1*v2 - r2*v1)/v2^2); rd_sqrt takes the root of the value and the rate slot divided by twice it.
+HOLDING : every slot is a top over 2^FIX. A product has bottom 2^(2 FIX), so rd_mix lands it once with >> FIX.
+SEED    : dm_of(g, slot) seeds rate 1 in one slot: the flame's offset is the reading's isolate, one slot per direction.
+TRAP    : rd_div's value of b is never 0 here: a light at the surface is refused upstream. Find where (light_reading).
+TRY     : do practice/p01_readings first. Then check one cell: rate of 1/|d|^2 against the flame's x should be
+          -2 dx / |d|^4. Predict the sign for a cell left of the flame, then print RATEX for it.
+@ /* ================================================================ the room
+The room in 1/64 cm
+HOLDING : lengths are tops over 64 (1/64 cm). A table, a wall, a book, a brass holder and glass, each a stated shape.
+@ /* ================================================================ casting rays at boot
+Casting rays at boot
+WHAT    : each cell of a half-resolution grid casts a ray; one ray where its neighbours hit the same thing, four at edges.
+BUDGET  : about 4 seconds at boot, once, so every frame after is four multiplies a cell. The trade is boot time for frame time.
+@ /* ================================================================ stuff: grain
+Stuff: plaster, weave, grain
+WHAT    : value noise from hash2 on whole numbers. A surface's look is a rule of its place, the same every boot.
+@ /* ================================================================ the room's grid: each cell's light as a reading */
+THE GRID: each cell's light as a reading
+WHAT    : light_reading computes the light at X, facing N, as a reading against the flame's offset: diffuse n.d/|d|^3,
+          shine (n.h)^p/|d|^2, light through wax, soft fill. Value and rates fall out of the moves together.
+STORED  : L0 (value at the flame's rest place), RATEX, RATEY, RATEZ (int8, each scaled by the cell's own shift e in ME).
+TIER    : the visible share of the flame's disc has its rates MEASURED by moving the flame 0.4 cm each way (a finite step).
+          That is the one estimated part, named STIPULATED in the code. Everything else is the moves, exact to the bottom.
+KILL    : bench/desk/lever_check.c: lever against a full re-cast at moved flames. Read README for the stated gap.
+@ /* ================================================================ the camera's flaws
+The camera's flaws, grown once
+WHAT    : film curve, lens falloff, grain tables. The phone look is rules applied after the light, never stored frames.
+@ /* ================================================================ the flame itself
+The flame, full resolution, drawn over
+WHAT    : grow_flame builds the flame's picture once; each frame it is placed by the flame's lean and height.
+@ /* ================================================================ the flame's flicker
+Flicker and the hand: carried springs
+WHAT    : spring_step: v += -(s >> pull) - (v >> damp) + kick; s += v. Each spring is a reading latched once a frame: the
+          rate (v) is carried, never recomputed from two positions. Drafts arrive and leave on countdowns, not timers.
+RELATION: the flame's move (DX, DY, DZ) is what the lever multiplies. The hand's drift moves the picture, not the light.
+TRAP    : >> floors, so a spring's rest drifts by up to one unit below zero. Harmless here (nothing runs back); it would not
+          be in TIDE or MINAMO. Name which kind of build you are in before choosing a landing.
+@ /* ================================================================ drawing: half cells lit each frame
+Drawing: the lever, then the full dots
+WHAT    : half_row computes each half-res cell's light: L0 + (RATEX*DX + RATEY*DY + RATEZ*DZ) shifted by e. hrow and
+          screen_row expand to full dots with the film curve, glow, falloff, exposure that lags, and grain.
+COST    : four multiplies and a shift a cell. Compare a re-cast: a ray, a shadow test and the light model per cell per frame.
+TRY     : set RATEX, RATEY, RATEZ to 0 after grow_room. Predict: the room is lit but still while the flame moves; the shadows
+          stop breathing. That is the lever ablated.
+@ ---------------------------------------------------------------- run
+Run
+WHAT    : setup grows everything (4 s dark), loop draws frames. Serial prints real frame times on the board.
