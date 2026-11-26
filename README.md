@@ -6,7 +6,7 @@ named refusal (theta) where a question has nothing to land on, and claims that c
 holds the method, the workbook it rests on, practice tasks with checkers, ten annotated demos for the ESP32-C3 and the
 Uno, and the procedure for testing the method itself.
 
-**AI: start at `AGENTS.md`.** It lists the stages in order, and each stage ends in a command that prints PASS or FAIL.
+**AI: start at `AGENTS.md`.** No terminal, just a chat window? Use `chat_kit/` instead (`chat_kit/README.md`). It lists the stages in order, and each stage ends in a command that prints PASS or FAIL.
 
 **People: start here, then `docs/START.md`.**
 

@@ -30,6 +30,35 @@ command fails, that is information; log it and work out why before going on.
     **Ratios as first order only.** **Effort already spent is not a term.**
 15. **Read the material whole.** Say what you did not read.
 
+## 0b. Presumptions to refuse (each one has happened in this project)
+
+| do not presume | instead |
+|---|---|
+| that code you wrote ran, compiled or worked | say "unrun"; give the exact thing to check |
+| that the board behaves like your mental model, an emulator or a PC | ask for the board's report; it outranks you |
+| that `float`, `sin` or `millis()` is fine "just for setup" or "just for the animation" | whole numbers, headings and latch counts everywhere |
+| that `int` is 32 bits | on an Arduino Uno it is 16 (256 * 181 is −19,200 there); use `int32_t` and cast before multiplying |
+| that `/` or `>>` rounds the way you want | use `mouth` at the edge; note any negative division |
+| that a library is installed | no libraries; use the sketches and benches in this repo |
+| that a pin is free | check section 3: strapping, flash and USB pins |
+| that the panel's colour order is standard | ask what the person sees; use the fix defines |
+| that two random draws in one call are evaluated in order | C does not define the order; draw into named variables first |
+| that a sketch or helper from an earlier chat exists here | ask the person to paste it |
+| that a plausible number is a measured one | label every number: computed here (show the working) or quoted from the person |
+| that the person wants a rewrite or a new architecture | make the smallest change that does what was asked |
+| that the request is a fixed claim to argue with | build what was asked; if it is unclear, ask |
+| that silence or "ok" from the person means it worked | ask what they saw: the books line, the motion, the serial line |
+| that a check passing means the idea is right | name what the check cannot see |
+| that you read a file when you only skimmed it | say which parts you read |
+| that an outside name means the same as the book's word | keep the book's words; name the known technique once |
+| that a constant is universal | name the regime it was measured in |
+| that more code, more features or more comments are better | the shortest code that holds the relation and its books |
+| that you should edit a check to make it pass | never; report the failing check and what you think is wrong |
+
+
+Also: you may be able to run commands here, but the person's board is still the final witness. A command you did not
+run is not run; a stage is done only when its command printed PASS **in this session**.
+
 ## 1. The stages
 
 Work in order. Log each stage in the ledger as you go:
