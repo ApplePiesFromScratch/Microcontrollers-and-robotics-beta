@@ -98,4 +98,4 @@ Every C3 sketch here builds two ways from one source and the two are compared fr
   2026). The scripts read `ARDUINO_CLI` (default `arduino-cli`). `bench/tools/ide_check.sh` runs the IDE's own prototype
   step, so a sketch that compiles here compiles in the IDE.
 
-Not every bench was re-run for this repo; `check_all.sh` says which ran and which were skipped for want of `MCR_X`.
+Step-by-step setup (Windows via WSL2, Linux): `docs/EMULATOR_SETUP.md`. Not every bench was re-run for this repo; `check_all.sh` says which ran and which were skipped for want of `MCR_X`.

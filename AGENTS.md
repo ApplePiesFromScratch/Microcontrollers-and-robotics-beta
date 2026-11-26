@@ -62,7 +62,13 @@ witnesses less.
 ## 2. Checking the repo itself
 
 `bash check_all.sh` runs every checker, every checker's planted faults, the lesson-strip proof, the word lint, the
-workbook and METHOD checks, and the desk benches it can. It says what it skipped (the emulator needs `MCR_X`).
+workbook and METHOD checks, and the desk benches it can. It says what it skipped. The emulator is optional: a `skip`
+for it is the expected result without it, not a failure, and no stage needs it. To add it, follow
+`docs/EMULATOR_SETUP.md`; do not ask the person to install it for you unless they want the extra witness.
+
+**Never edit a checker, a planted fault or a bench script to make your work pass.** The checkers are the instruments of
+the course; a changed instrument witnesses nothing. If you believe a checker is wrong, leave it unchanged, log a `self`
+event and open an entry in `REVIEW.md` with your evidence.
 
 ## 3. How to write here
 

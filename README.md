@@ -39,8 +39,13 @@ its planted cases; METHOD's 22 quoted lesson lines; the desk benches listed in `
 emulated C3 for MINAMO (300 frames, identical) and NAGARE (300 latches, identical). `bash check_all.sh` ends
 `38 passed, 0 failed` with reference solutions in `practice/work/` and `29 passed, 0 failed, 12 skipped` without them.
 
-
+Not run: the emulated chip for the other eight demos, the board builds, and any board. Each demo's README carries its own
+record from the project. Board behaviour is UNPAID here until James's boards run it, and his reports outrank everything
+in this repo.
 
 ## Provenance
 
-The method, the workbooks, the useful pattern and the sketches are James Pugmire's project
+The method, the workbooks, the useful pattern and the sketches are James Pugmire's project, built with Claude between
+October and November 2026. The demo READMEs are the project's own docs, copied with a provenance note at the top of each.
+The guides, the practice tasks and checkers, the lesson blocks and workbook Part V were written for this repo on
+25 Nov 2026. No licence file is included yet: the author chooses one.
